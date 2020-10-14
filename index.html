@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Devices management</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires"  content="0" />
+	<script src="js/jquery-3.4.1.min.js"></script>
+	<script src="js/popper.min.js"></script>
+	<link rel="stylesheet" href="./css/bootstrap.min.css">
+	<script src="js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+	<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+	<link rel="stylesheet" href="css/style.css">
+	<script type="text/javascript" src="js/main.js" defer></script>
+	<link rel="icon" type="image/svg" href="img/dev-support.svg">
+</head>
+<body>
+	<div class="sticky-top float-right">
+		<a class="btn-logout" href="#">
+        	<img src="img/exit.svg" alt="logout" title="logout" />
+      	</a>
+	</div>
+	<div class="modal fade" id="modal_signIn" tabindex="-1" role="dialog" aria-labelledby="modalSignIn" aria-hidden="true">
+		<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modalSignIn">Login to the protected area</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<form>
+					<div class="form-group">
+						<label for="signIn_username" class="col-form-label">username:</label>
+						<input type="text" required class="form-control" id="signIn_username">
+					</div>
+					<div class="form-group">
+						<label for="signIn_password" class="col-form-label">password:</label>
+						<input type="password" required class="form-control" id="signIn_password">
+					</div>
+					</form>
+					<div class="row mx-2 sign_in">
+					<div class="col-12 post-report">
+					</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="btn_signIn" type="button" class="btn-signIn btn btn-primary">SignIn</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="main-container container-xl mx-5 d-none">
+			<div class="collapse border border-dark mt-2 p-2">
+				<div class="row">
+					<div class="col">Device</div>
+					<div class="col">Platform</div>
+					<div class="col">Service</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<input type="text" class="input-device input-device-name" placeholder="Device">
+					</div>
+					<div class="col">
+						<input type="text" class="input-device input-device-platform" placeholder="Platform">
+					</div>
+					<div class="col">
+						<input type="text" class="input-device input-device-service" placeholder="Service">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">Ops. Owner</div>
+					<div class="col">Contact Info</div>
+					<div class="col">Manager</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<input type="text" class="input-device input-device-owner" placeholder="Ops. Owner">
+					</div>
+					<div class="col">
+						<input type="text" class="input-device input-device-contact_info" placeholder="Contact Info">
+					</div>
+					<div class="col">
+						<input type="text" class="input-device input-device-manager" placeholder="Manager">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">Comments</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<textarea name="" id="" rows="2" cols="60" class="input-device input-device-comments"></textarea>
+					</div>
+				</div>
+				<div class="row mt-2">
+					<div class="col">
+						<button type="button" class="btn btn-success btn-sm btn-apply-settings">Apply</button>
+						<button type="button" class="btn btn-primary btn-sm btn-add-device">Add</button>
+						<button type="button" class="btn btn-warning btn-sm btn-clear-settings">Clear</button>
+					</div>
+				</div>
+			</div>
+		<div class="divider-arrow">
+			<hr class="dotted">
+			<div class="triangle triangle-down"></div>
+		</div>
+		<table class="devices-all-table table table-hover table-sm table-striped table-bordered compact no-footer" id="devices-all-table">
+			<thead>
+				<tr>
+					<th>Device</th>
+					<th class="wider-tr">Platform</th>
+					<th class="wider-tr">Service</th>
+					<th class="wider-tr">Ops. owner</th>
+					<th>Contact Info</th>
+					<th>Manager</th>
+					<th>Comments</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody class="devices-all-body">
+			</tbody>
+		</table>
+	</div>
+
+	<!-- <div id="changeDeviceOptions" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="titleAccessControl">Device add/update</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-success" data-dismiss="modal">Apply</button>
+					<button type="button" class="btn btn-primary" data-dismiss="modal">Add</button>
+					<button type="button" class="btn btn-warning" data-dismiss="modal">Clear</button>
+				</div>
+			</div>
+		</div>
+	</div> -->
+	<div id="dialogModal" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="titleDialogModal">Question</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<p id="questionDialogModal"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+				<button type="button" class="btn btn-primary" modal-command="" id="btnDialogModal">Yes</button>
+			</div>
+			</div>
+		</div>
+		</div>
+</body>
+
+</html>
