@@ -1,6 +1,5 @@
 .action-buttons{
 	display: flex;
-	/* justify-content: space-between; */
 }
 .action-button{
 	margin-left: 2px;
@@ -39,4 +38,7 @@ hr.dotted {
 }
 .divider-arrow{
 	display: flex;
+}
+.text-area {
+	min-height: 150px;
 }

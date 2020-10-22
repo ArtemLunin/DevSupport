@@ -86,7 +86,6 @@ const doGetDevicesAll = function(json_answer){
 		id, name, platform, service, owner, contact_info, manager, comments
 	}) 
 	{
-		// console.log(comments);
 		let deviceDataID = `device-data-${id}`;
 		devicesAllBody.insertAdjacentHTML('beforeend', `
 			<tr id="${deviceDataID}">
@@ -133,62 +132,14 @@ const doGetDevicesAll = function(json_answer){
 	"columnDefs": [
 		{ "orderable": false, "targets": 7 },
 		{ "width": "15%", "targets": [1, 2, 3] },
-		// { "width": "50%", "targets": 0 },
-		
 	],
-	// pageLength: 25,
 	"autoWidth": false,
 	"paging": false,
-	// "scrollY": 600,
-  	// "scrollCollapse": true
 	});
 	mainContainer.classList.remove('d-none');
 };
 const doApplyDeviceSettings = function({id, name, platform, service, owner, contact_info, manager, comments}){
-	// setTimeout(function () {
-						fillDevices();
-					// },7000);
-	
-	// const deviceDataID = `device-data-${id}`;
-	// const deviceData = document.getElementById(deviceDataID);
-	// deviceData.textContent = '';
-	// deviceData.insertAdjacentHTML('beforeend', `
-	// 			<td>
-	// 				<span>${name}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span>${platform}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span>${service}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span>${owner}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span>${contact_info}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span>${manager}</span>
-	// 			</td>
-	// 			<td>
-	// 				<span class="comment-text crop-height">${comments}</span>
-	// 			</td>
-	// 			<td>
-	// 				<div class="action-buttons">
-	// 					<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
-	// 					 data-name="${name}"
-	// 					 data-platform="${platform}"
-	// 					 data-service="${service}"
-	// 					 data-owner="${owner}"
-	// 					 data-contact_info="${contact_info}"
-	// 					 data-comments="${comments}"
-	// 					 data-manager="${manager}"
-	// 					 data-row-id="${deviceDataID}">Modify</button>
-	// 					<button class="btn btn-danger btn-sm action-button" data-name="${name}" data-device_id="${id}" data-param="delete">Delete</button>
-	// 				</div>
-	// 			</td>
-	// 	`);
+	fillDevices();
 }
 
 const doAddDevice = function({id, name, platform, service, owner, contact_info, manager, comments})
@@ -273,7 +224,7 @@ const modifyDeviceSettings = function(deviceParams){
 	inputDeviceOwner.value = deviceParams['owner'];
 	inputDeviceContact_info.value = deviceParams['contact_info'];
 	inputDeviceManager.value = deviceParams['manager'];
-	inputDevicecomments.value = deviceParams['comments'];
+	inputDevicecomments.innerText = deviceParams['comments'];
 	btnApplySettings.dataset['device_id'] = deviceParams['device_id'];
 	$('.collapse').collapse('show');
 };
@@ -329,6 +280,7 @@ const triangleToggle = (event) =>{
 const clearDeviceSettings = () =>{
 	inputDeviceSettings.forEach(function (inputField){
 		inputField.value = '';
+		inputField.innerText = '';
 	});
 };
 
@@ -344,7 +296,7 @@ const applyDeviceSettings = (event) =>{
 	data.append('owner', inputDeviceOwner.value);
 	data.append('contact_info', inputDeviceContact_info.value);
 	data.append('manager', inputDeviceManager.value);
-	data.append('comments', inputDevicecomments.value);
+	data.append('comments', inputDevicecomments.innerText);
 	request.open("POST", requestURLGlobal, true);
 	request.send(data);
 	request.onload = function () {
@@ -362,7 +314,7 @@ const addDevice = (event) => {
 	data.append('owner', inputDeviceOwner.value);
 	data.append('contact_info', inputDeviceContact_info.value);
 	data.append('manager', inputDeviceManager.value);
-	data.append('comments', inputDevicecomments.value);
+	data.append('comments', inputDevicecomments.innerText);
 	request.open("POST", requestURLGlobal, true);
 	request.send(data);
 	request.onload = function () {
@@ -370,8 +322,8 @@ const addDevice = (event) => {
 	}
 };
 const reqDeleteDevice = (deviceParams) =>{
-	titleDialogModal.innerText = 'Delete device';
-	questionDialogModal.innerText = `Do you really want to delete the device: ${deviceParams['name']}?`;
+	titleDialogModal.innerText = 'Delete node';
+	questionDialogModal.innerText = `Do you really want to delete the node: ${deviceParams['name']}?`;
 	btnDialogModal.setAttribute('modal-command', 'deleteDevice');
 	btnDialogModal.dataset['id'] = deviceParams['device_id'];
 	$('#dialogModal').modal({
