@@ -2,9 +2,24 @@
 session_start();
 require_once "connect_db.php";
 
+$shield_new_line = function($value) {
+    // if ((strpos($value,"\n") !== FALSE) || ((strpos($value,"\r\n") !== FALSE)))
+	// {
+		$value = '"'.$value.'"';
+	// }
+	return $value;
+};
+
 $out_res = [];
 
-$call = $_POST['call'];
+$csv_output = FALSE;
+$global_csv_columns = "";
+$csv_rows_delimiter = "\n";
+
+$call = $_POST['call'] ?? NULL;
+if (isset($_GET['action'])) {
+	$call = $_GET['action'];
+}
 $mySQLQueryName = $call.'('.basename(__DIR__).')';
 
 $param_error_msg = [];
@@ -51,25 +66,7 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 	{
 		try
 		{
-			$sql = "/*{$mySQLQueryName}*/"."SELECT id, name, platform, service, owner, contact_info, manager, comments FROM devices";
-			$row = $pdo->prepare($sql);
-			$row->execute();
-			if($table_res = $row->fetchall())
-			{
-				foreach ($table_res as $row_res)
-				{
-					$param_error_msg['answer'][] = [
-						'id'			=> (int)$row_res['id'],
-						'name'			=> $row_res['name'],
-						'platform'		=> $row_res['platform'],
-						'service'		=> $row_res['service'],
-						'owner'			=> $row_res['owner'],
-						'contact_info'	=> $row_res['contact_info'],
-						'manager'		=> $row_res['manager'],
-						'comments'		=> $row_res['comments'],
-					];
-				}
-			}
+			$param_error_msg['answer'] = doGetDevicesAll();
 		}
 		catch (PDOException $e) 
 		{
@@ -195,15 +192,43 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$out_res = ['error' => $param_error_msg];
 		}
 	}
+	elseif ($call == 'doDataExport') {
+		try
+		{
+			$device_array = doGetDevicesAll();
+			$csv_output = "";
+			foreach ($device_array as $value) {
+				
+				$csv_output .= implode(';', array_map($shield_new_line, $value)).$csv_rows_delimiter;
+			}
+			$csv_output = $global_csv_columns.$csv_output;
+		}
+		catch (PDOException $e) 
+		{
+			setSQLError($e, 'SQL error. Call '.$_POST['call']);
+		}
+	}
 }
 else
 {
 	$unauthorized = TRUE;
 }
 
-if (!$unauthorized){
-header('Content-type: application/json');
-echo json_encode($out_res);
+if (!$unauthorized) {
+	if ($csv_output !== FALSE) {
+		// $filename = 'httpfile.zip';
+  		$mimetype = 'text/csv';
+  		// $data = file_get_contents($filename);
+  		$size = strlen($csv_output);
+  		header('Content-Disposition: attachment; filename= data.csv');
+  		header('Content-Length: '.$size);
+  		header('Content-Type: text/csv');
+  		echo $csv_output;
+	}
+	else {
+		header('Content-type: application/json');
+		echo json_encode($out_res);
+	}
 }
 else
 {
@@ -218,10 +243,37 @@ function setSQLError($pdo_exception, $error_text)
 	errorLog($error_txt_info, 1);
 }
 
-function errorLog($error_message, $debug_mode=1)
+function errorLog($error_message, $debug_mode = 1)
 {
-	if ($debug_mode===1)
+	if ($debug_mode === 1)
 		error_log($error_message);
 	return TRUE;
 }
+function doGetDevicesAll()
+{
+	global $pdo, $mySQLQueryName, $global_csv_columns, $csv_rows_delimiter;
+	$device_list = [];
+	$sql = "/*{$mySQLQueryName}*/"."SELECT id, name, platform, service, owner, contact_info, manager, comments FROM devices";
+	$row = $pdo->prepare($sql);
+	$row->execute();
+	if($table_res = $row->fetchall())
+	{
+		foreach ($table_res as $row_res)
+		{
+			$device_list[] = [
+				'id'			=> (int)$row_res['id'],
+				'name'			=> $row_res['name'],
+				'platform'		=> $row_res['platform'],
+				'service'		=> $row_res['service'],
+				'owner'			=> $row_res['owner'],
+				'contact_info'	=> $row_res['contact_info'],
+				'manager'		=> $row_res['manager'],
+				'comments'		=> $row_res['comments'],
+			];
+		}
+	}
+	$global_csv_columns = "id;name;platform;service;owner;contact_info;manager;comments".$csv_rows_delimiter;
+	return $device_list;
+}
+
 ?>

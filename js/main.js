@@ -2,6 +2,7 @@ const requestURLGlobal = 'backend.php';
 
 const mainContainer = document.querySelector('.main-container');
 const btnLogout  = document.querySelector('.btn-logout');
+const btnExport  = document.querySelector('.btn-export');
 const devicesAllTable = document.querySelector('.devices-all-table');
 const devicesAllBody = document.querySelector('.devices-all-body');
 const inputDeviceName = document.querySelector('.input-device-name');
@@ -111,7 +112,7 @@ const doGetDevicesAll = function(json_answer){
 					<span class="comment-text crop-height">${comments}</span>
 				</td>
 				<td>
-					<div class="action-buttons">
+					<div class="action-buttons d-block d-xl-flex">
 						<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
 						 data-name="${name}"
 						 data-platform="${platform}"
@@ -140,6 +141,7 @@ const doGetDevicesAll = function(json_answer){
 };
 const doApplyDeviceSettings = function({id, name, platform, service, owner, contact_info, manager, comments}){
 	fillDevices();
+	clearDeviceSettings();
 }
 
 const doAddDevice = function({id, name, platform, service, owner, contact_info, manager, comments})
@@ -171,7 +173,7 @@ const doAddDevice = function({id, name, platform, service, owner, contact_info, 
 			<span class="comment-text crop-height">${comments}</span>
 		</td>
 		<td>
-			<div class="action-buttons">
+			<div class="action-buttons d-block d-xl-flex">
 				<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
 				data-name="${name}"
 				data-platform="${platform}"
@@ -186,6 +188,7 @@ const doAddDevice = function({id, name, platform, service, owner, contact_info, 
 		</td>
 	`);
 	dataTableObj.row.add(newTR).draw(false);
+	clearDeviceSettings();
 };
 
 const doDeleteDevice = function ({id}){
@@ -259,9 +262,19 @@ const logOut = function(){
 	request.send(data);
 	request.onload = function () {
 		backendDispatch(request);
-	}	
+	}
 }
-
+const dataExport = function() {
+	// const request = new XMLHttpRequest();
+	// const data = new FormData();
+	// data.append('call', 'doDataExport');
+	// request.open("POST", 'export.php', true);
+	// request.send(data);
+	// request.onload = function () {
+	// 	// backendDispatch(request);
+	// }
+	document.location.href='./backend.php?action=doDataExport';
+}
 const triangleToggle = (event) =>{
 	const target = event.target;
 	if (target.classList.contains('triangle-down'))
@@ -373,6 +386,7 @@ btnAddDevice.addEventListener('click', addDevice);
 btnDialogModal.addEventListener('click', confirmDialog);
 btnSignIn.addEventListener('click', signIn);
 btnLogout.addEventListener('click', logOut);
+btnExport.addEventListener('click', dataExport);
 
 
 fillDevices();
