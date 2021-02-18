@@ -2,19 +2,10 @@
 session_start();
 require_once "connect_db.php";
 
-$shield_new_line = function($value) {
-    // if ((strpos($value,"\n") !== FALSE) || ((strpos($value,"\r\n") !== FALSE)))
-	// {
-		$value = '"'.$value.'"';
-	// }
-	return $value;
-};
-
 $out_res = [];
 
 $csv_output = FALSE;
 $global_csv_columns = "";
-$csv_rows_delimiter = "\n";
 
 $call = $_POST['call'] ?? NULL;
 if (isset($_GET['action'])) {
@@ -196,12 +187,18 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 		try
 		{
 			$device_array = doGetDevicesAll();
-			$csv_output = "";
-			foreach ($device_array as $value) {
-				
-				$csv_output .= implode(';', array_map($shield_new_line, $value)).$csv_rows_delimiter;
+		
+			$headers = ["id", "name", "platform", "service", "owner", "contact_info", "manager", "comments"];
+			array_unshift($device_array, $headers);
+			$temp_file = tempnam(sys_get_temp_dir(), 'csv');
+			$tmp_file = fopen($temp_file, 'w+');
+			foreach ($device_array as $fields) {
+				fputcsv($tmp_file, $fields, ';');
 			}
-			$csv_output = $global_csv_columns.$csv_output;
+			fflush($tmp_file);
+			$csv_output = file_get_contents($temp_file);
+
+
 		}
 		catch (PDOException $e) 
 		{
@@ -216,11 +213,9 @@ else
 
 if (!$unauthorized) {
 	if ($csv_output !== FALSE) {
-		// $filename = 'httpfile.zip';
   		$mimetype = 'text/csv';
-  		// $data = file_get_contents($filename);
   		$size = strlen($csv_output);
-  		header('Content-Disposition: attachment; filename= data.csv');
+  		header('Content-Disposition: attachment; filename=data.csv');
   		header('Content-Length: '.$size);
   		header('Content-Type: text/csv');
   		echo $csv_output;
@@ -251,7 +246,7 @@ function errorLog($error_message, $debug_mode = 1)
 }
 function doGetDevicesAll()
 {
-	global $pdo, $mySQLQueryName, $global_csv_columns, $csv_rows_delimiter;
+	global $pdo, $mySQLQueryName, $global_csv_columns;
 	$device_list = [];
 	$sql = "/*{$mySQLQueryName}*/"."SELECT id, name, platform, service, owner, contact_info, manager, comments FROM devices";
 	$row = $pdo->prepare($sql);
@@ -272,7 +267,6 @@ function doGetDevicesAll()
 			];
 		}
 	}
-	$global_csv_columns = "id;name;platform;service;owner;contact_info;manager;comments".$csv_rows_delimiter;
 	return $device_list;
 }
 
