@@ -40,5 +40,6 @@ hr.dotted {
 	display: flex;
 }
 .text-area {
-	min-height: 150px;
+	height: 200px;
+	overflow-y: auto;
 }

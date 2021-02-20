@@ -11,7 +11,7 @@ const inputDeviceService = document.querySelector('.input-device-service');
 const inputDeviceOwner = document.querySelector('.input-device-owner');
 const inputDeviceContact_info = document.querySelector('.input-device-contact_info');
 const inputDeviceManager = document.querySelector('.input-device-manager');
-const inputDevicecomments = document.querySelector('.input-device-comments');
+const inputDeviceComments = document.querySelector('.input-device-comments');
 const triangle = document.querySelector('.triangle');
 const btnApplySettings = document.querySelector('.btn-apply-settings');
 const btnAddDevice = document.querySelector('.btn-add-device');
@@ -227,7 +227,7 @@ const modifyDeviceSettings = function(deviceParams){
 	inputDeviceOwner.value = deviceParams['owner'];
 	inputDeviceContact_info.value = deviceParams['contact_info'];
 	inputDeviceManager.value = deviceParams['manager'];
-	inputDevicecomments.innerText = deviceParams['comments'];
+	inputDeviceComments.innerText = deviceParams['comments'];
 	btnApplySettings.dataset['device_id'] = deviceParams['device_id'];
 	$('.collapse').collapse('show');
 };
@@ -309,7 +309,7 @@ const applyDeviceSettings = (event) =>{
 	data.append('owner', inputDeviceOwner.value);
 	data.append('contact_info', inputDeviceContact_info.value);
 	data.append('manager', inputDeviceManager.value);
-	data.append('comments', inputDevicecomments.innerText);
+	data.append('comments', inputDeviceComments.innerText);
 	request.open("POST", requestURLGlobal, true);
 	request.send(data);
 	request.onload = function () {
@@ -327,7 +327,7 @@ const addDevice = (event) => {
 	data.append('owner', inputDeviceOwner.value);
 	data.append('contact_info', inputDeviceContact_info.value);
 	data.append('manager', inputDeviceManager.value);
-	data.append('comments', inputDevicecomments.innerText);
+	data.append('comments', inputDeviceComments.innerText);
 	request.open("POST", requestURLGlobal, true);
 	request.send(data);
 	request.onload = function () {

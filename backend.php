@@ -1,10 +1,18 @@
 <?php
 session_start();
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xls;
+\PhpOffice\PhpSpreadsheet\Cell\Cell::setValueBinder( new \PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder() );
+
 require_once "connect_db.php";
 
 $out_res = [];
+$filename = tempnam(sys_get_temp_dir(), 'xls');
 
 $csv_output = FALSE;
+$xls_output = FALSE;
 $global_csv_columns = "";
 
 $call = $_POST['call'] ?? NULL;
@@ -12,6 +20,17 @@ if (isset($_GET['action'])) {
 	$call = $_GET['action'];
 }
 $mySQLQueryName = $call.'('.basename(__DIR__).')';
+
+$data_fields = [
+	'name'	=> '', 
+	'platform'	=> '', 
+	'service'	=> '', 
+	'owner'	=> '', 
+	'contact_info'	=> '', 
+	'manager'	=> '', 
+	'comments'	=> '',
+];
+
 
 $param_error_msg = [];
 $param_error_count = 0;
@@ -53,6 +72,11 @@ elseif ($call == 'doLogOut')
 elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 {
 	$unauthorized = FALSE;
+	foreach ($data_fields as $key => $value) {
+		if(isset($_POST[$key])) {
+			$data_fields[$key] = removeBadSymbols($_POST[$key]);
+		}
+	}
 	if ($call == 'doGetDevicesAll')
 	{
 		try
@@ -80,24 +104,24 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$sql = "/*{$mySQLQueryName}*/"."UPDATE devices SET name=:name, platform=:platform, service=:service, owner=:owner, contact_info=:contact_info, manager=:manager, comments=:comments WHERE id=:id";
 			$row = $pdo->prepare($sql);
 			$row->execute([
-				'name'		=> $_POST['name'],
-				'platform'	=> $_POST['platform'],
-				'service'	=> $_POST['service'],
-				'owner'		=> $_POST['owner'],
-				'contact_info'	=> $_POST['contact_info'],
-				'manager'	=> $_POST['manager'],
-				'comments'	=> $_POST['comments'],
+				'name'		=> $data_fields['name'],
+				'platform'	=> $data_fields['platform'],
+				'service'	=> $data_fields['service'],
+				'owner'		=> $data_fields['owner'],
+				'contact_info'	=> $data_fields['contact_info'],
+				'manager'	=> $data_fields['manager'],
+				'comments'	=> $data_fields['comments'],
 				'id'		=> $_POST['id'],
 			]);
 			$param_error_msg['answer'] = [
 				'id'			=> (int)$_POST['id'],
-				'name'			=> $_POST['name'],
-				'platform'		=> $_POST['platform'],
-				'service'		=> $_POST['service'],
-				'owner'			=> $_POST['owner'],
-				'contact_info'	=> $_POST['contact_info'],
-				'manager'		=> $_POST['manager'],
-				'comments'		=> $_POST['comments'],
+				'name'			=> $data_fields['name'],
+				'platform'		=> $data_fields['platform'],
+				'service'		=> $data_fields['service'],
+				'owner'			=> $data_fields['owner'],
+				'contact_info'	=> $data_fields['contact_info'],
+				'manager'		=> $data_fields['manager'],
+				'comments'		=> $data_fields['comments'],
 			];
 		}
 		catch (PDOException $e) 
@@ -121,24 +145,24 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$sql = "/*{$mySQLQueryName}*/"."INSERT INTO devices (name, platform, service,  owner, contact_info, manager, comments) VALUES (:name, :platform, :service, :owner, :contact_info, :manager, :comments)";
 			$row = $pdo->prepare($sql);
 			$row->execute([
-				'name'		=> $_POST['name'],
-				'platform'	=> $_POST['platform'],
-				'service'	=> $_POST['service'],
-				'owner'		=> $_POST['owner'],
-				'contact_info'	=> $_POST['contact_info'],
-				'manager'	=> $_POST['manager'],
-				'comments'	=> $_POST['comments'],
+				'name'		=> $data_fields['name'],
+				'platform'	=> $data_fields['platform'],
+				'service'	=> $data_fields['service'],
+				'owner'		=> $data_fields['owner'],
+				'contact_info'	=> $data_fields['contact_info'],
+				'manager'	=> $data_fields['manager'],
+				'comments'	=> $data_fields['comments'],
 			]);
 			$id = $pdo->lastInsertId();
 			$param_error_msg['answer'] = [
 				'id'			=> (int)$id,
-				'name'			=> $_POST['name'],
-				'platform'		=> $_POST['platform'],
-				'service'		=> $_POST['service'],
-				'owner'			=> $_POST['owner'],
-				'contact_info'	=> $_POST['contact_info'],
-				'manager'		=> $_POST['manager'],
-				'comments'		=> $_POST['comments'],
+				'name'			=> $data_fields['name'],
+				'platform'		=> $data_fields['platform'],
+				'service'		=> $data_fields['service'],
+				'owner'			=> $data_fields['owner'],
+				'contact_info'	=> $data_fields['contact_info'],
+				'manager'		=> $data_fields['manager'],
+				'comments'		=> $data_fields['comments'],
 			];
 		}
 		catch (PDOException $e) 
@@ -184,26 +208,51 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 		}
 	}
 	elseif ($call == 'doDataExport') {
+		$spreadsheet = new Spreadsheet();
+		$sheet = $spreadsheet->getActiveSheet();
+		// try
+		// {
+		// 	$device_array = doGetDevicesAll();
+		
+		// 	$headers = ["id", "name", "platform", "service", "owner", "contact_info", "manager", "comments"];
+		// 	array_unshift($device_array, $headers);
+		// 	$temp_file = tempnam(sys_get_temp_dir(), 'csv');
+		// 	$tmp_file = fopen($temp_file, 'w+');
+		// 	foreach ($device_array as $fields) {
+		// 		fputcsv($tmp_file, $fields, ';');
+		// 	}
+		// 	fflush($tmp_file);
+		// 	$csv_output = file_get_contents($temp_file);
+		// }
+		// catch (PDOException $e) 
+		// {
+		// 	setSQLError($e, 'SQL error. Call '.$_POST['call']);
+		// }
 		try
 		{
 			$device_array = doGetDevicesAll();
 		
 			$headers = ["id", "name", "platform", "service", "owner", "contact_info", "manager", "comments"];
+            $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 			array_unshift($device_array, $headers);
-			$temp_file = tempnam(sys_get_temp_dir(), 'csv');
-			$tmp_file = fopen($temp_file, 'w+');
-			foreach ($device_array as $fields) {
-				fputcsv($tmp_file, $fields, ';');
+
+			$row_idx = 1;
+			foreach ($device_array as $rows) {
+                $ceil_idx = 0;
+                foreach ($rows as $ceil) {
+                    $sheet->setCellValue($columns[$ceil_idx].$row_idx, $ceil);
+                    $ceil_idx++;
+                }
+				$row_idx++;
 			}
-			fflush($tmp_file);
-			$csv_output = file_get_contents($temp_file);
-
-
+			$writer = new Xls($spreadsheet);
+			$writer->save($filename);
 		}
 		catch (PDOException $e) 
 		{
 			setSQLError($e, 'SQL error. Call '.$_POST['call']);
 		}
+		$xls_output = TRUE;
 	}
 }
 else
@@ -219,6 +268,16 @@ if (!$unauthorized) {
   		header('Content-Length: '.$size);
   		header('Content-Type: text/csv');
   		echo $csv_output;
+	}
+	elseif ($xls_output !== FALSE){
+		header("Content-Type: application/vnd.ms-excel; charset=utf-8");
+		header("Content-Disposition: attachment; filename=data.xls");
+		header("Expires: 0");
+		header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+		header("Cache-Control: private",false);
+		$handle = fopen($filename, "r");
+		$contents = fread($handle, filesize($filename));
+		echo $contents;
 	}
 	else {
 		header('Content-type: application/json');
@@ -257,17 +316,22 @@ function doGetDevicesAll()
 		{
 			$device_list[] = [
 				'id'			=> (int)$row_res['id'],
-				'name'			=> $row_res['name'],
-				'platform'		=> $row_res['platform'],
-				'service'		=> $row_res['service'],
-				'owner'			=> $row_res['owner'],
-				'contact_info'	=> $row_res['contact_info'],
-				'manager'		=> $row_res['manager'],
-				'comments'		=> $row_res['comments'],
+				'name'			=> removeBadSymbols($row_res['name']),
+				'platform'		=> removeBadSymbols($row_res['platform']),
+				'service'		=> removeBadSymbols($row_res['service']),
+				'owner'			=> removeBadSymbols($row_res['owner']),
+				'contact_info'	=> removeBadSymbols($row_res['contact_info']),
+				'manager'		=> removeBadSymbols($row_res['manager']),
+				'comments'		=> removeBadSymbols($row_res['comments']),
 			];
 		}
 	}
 	return $device_list;
+}
+
+function removeBadSymbols($str)
+{
+	return str_replace(["\"","'","\t"]," ", $str);
 }
 
 ?>
