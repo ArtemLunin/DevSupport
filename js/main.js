@@ -1,6 +1,8 @@
 const requestURLGlobal = 'backend.php';
 
 const mainContainer = document.querySelector('.main-container');
+const modifyContainer = document.querySelector('.modify-container');
+const dividerArrow = document.querySelector('.divider-arrow');
 const btnLogout  = document.querySelector('.btn-logout');
 const btnExport  = document.querySelector('.btn-export');
 const devicesAllTable = document.querySelector('.devices-all-table');
@@ -26,6 +28,11 @@ const signInUsername = document.getElementById('signIn_username');
 const signInPassword = document.getElementById('signIn_password');
 
 let dataTableObj;
+
+let showEditItems  = localStorage.getItem('showEditItems');
+if (!showEditItems) {
+	showEditItems = '0';
+}
 
 const objCallbackFunctions = {
 	'doGetDevicesAll': function (parameter) { 
@@ -66,6 +73,26 @@ const backendDispatch = function (request) {
 	}
 };
 
+const hideEditItems = function () {
+	if (!modifyContainer.classList.contains('d-none')){
+		modifyContainer.classList.add('d-none');
+	}
+	if (!dividerArrow.classList.contains('d-none')){
+		dividerArrow.classList.add('d-none');
+	}
+};
+
+const init = function () {
+	if (showEditItems == '1') {
+		modifyContainer.classList.remove('d-none');
+		dividerArrow.classList.remove('d-none');
+	}
+	else {
+		hideEditItems();
+	}
+};
+
+
 const fillDevices = function(){
 	const request = new XMLHttpRequest();
 	const data = new FormData();
@@ -81,6 +108,10 @@ const doGetDevicesAll = function(json_answer){
 	if(!!dataTableObj)
 	{
 		dataTableObj.clear().destroy();
+	}
+	let hideEditButtons = 'd-block d-xl-flex';
+	if (showEditItems == '0') {
+		hideEditButtons = 'd-none';
 	}
 	devicesAllBody.textContent = '';
 	json_answer.forEach(function ({
@@ -112,7 +143,7 @@ const doGetDevicesAll = function(json_answer){
 					<span class="comment-text crop-height">${comments}</span>
 				</td>
 				<td>
-					<div class="action-buttons d-block d-xl-flex">
+					<div class="action-buttons ${hideEditButtons}">
 						<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
 						 data-name="${name}"
 						 data-platform="${platform}"
@@ -196,7 +227,12 @@ const doDeleteDevice = function ({id}){
 	$('#dialogModal').modal('hide');
 };
 
-const doSignIn = function (parameters){
+const doSignIn = function (json_answer) {
+	let full_access = 0;
+	if (!!json_answer.full_access) {
+		full_access = json_answer.full_access;
+	}
+	localStorage.setItem('showEditItems', full_access);
 	document.location.href='./index.html';
 }
 
@@ -255,6 +291,7 @@ const logOut = function(){
 	if (!mainContainer.classList.contains('d-none')){
 		mainContainer.classList.add('d-none');
 	}
+	hideEditItems();
 	const request = new XMLHttpRequest();
 	const data = new FormData();
 	data.append('call', 'doLogOut');
@@ -265,14 +302,6 @@ const logOut = function(){
 	}
 }
 const dataExport = function() {
-	// const request = new XMLHttpRequest();
-	// const data = new FormData();
-	// data.append('call', 'doDataExport');
-	// request.open("POST", 'export.php', true);
-	// request.send(data);
-	// request.onload = function () {
-	// 	// backendDispatch(request);
-	// }
 	document.location.href='./backend.php?action=doDataExport';
 }
 const triangleToggle = (event) =>{
@@ -388,6 +417,6 @@ btnSignIn.addEventListener('click', signIn);
 btnLogout.addEventListener('click', logOut);
 btnExport.addEventListener('click', dataExport);
 
-
+init();
 fillDevices();
 clearDeviceSettings();

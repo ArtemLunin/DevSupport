@@ -42,9 +42,12 @@ mb_internal_encoding("UTF-8");
 
 $pdo = connectToBase();
 
+//allows data to be changed 
+$full_access = $_SESSION['full_access'] ?? 0;
+
 if ($call == 'doSignIn' && isset($_POST['username']) && isset($_POST['password']))
 {
-	$query = "/*{$mySQLQueryName}*/"."SELECT id, username, password FROM users WHERE username=:username";
+	$query = "/*{$mySQLQueryName}*/"."SELECT id, username, password, full_access FROM users WHERE username=:username";
  	try
  	{
 		$row = $pdo->prepare($query);
@@ -53,9 +56,10 @@ if ($call == 'doSignIn' && isset($_POST['username']) && isset($_POST['password']
 		if (isset($result['id']) && password_verify($_POST['password'], $result['password']))
 		{
 			$_SESSION['logged_user'] = $result['id'];
+			$_SESSION['full_access'] = ($result['full_access'] == '1') ? 1 : 0;
 			$param_error_msg['code'] = 1;
-			$param_error_msg['answer'] = 1;
-			$out_res=['success' => $param_error_msg];
+			$param_error_msg['answer']['full_access'] = $_SESSION['full_access'];
+			$out_res = ['success' => $param_error_msg];
 			$unauthorized = FALSE;
 		}
 	}
@@ -97,7 +101,7 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$out_res = ['error' => $param_error_msg];
 		}
 	}
-	elseif ($call == 'doApplyDeviceSettings') 
+	elseif ($call == 'doApplyDeviceSettings' && $full_access) 
 	{
 		try
 		{
@@ -138,7 +142,7 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$out_res = ['error' => $param_error_msg];
 		}
 	}
-	elseif ($call == 'doAddDevice') 
+	elseif ($call == 'doAddDevice' && $full_access) 
 	{
 		try
 		{
@@ -179,7 +183,7 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$out_res = ['error' => $param_error_msg];
 		}
 	}
-	elseif ($call == 'doDeleteDevice') 
+	elseif ($call == 'doDeleteDevice' && $full_access) 
 	{
 		try
 		{
@@ -207,27 +211,10 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 			$out_res = ['error' => $param_error_msg];
 		}
 	}
-	elseif ($call == 'doDataExport') {
+	elseif ($call == 'doDataExport') 
+	{
 		$spreadsheet = new Spreadsheet();
 		$sheet = $spreadsheet->getActiveSheet();
-		// try
-		// {
-		// 	$device_array = doGetDevicesAll();
-		
-		// 	$headers = ["id", "name", "platform", "service", "owner", "contact_info", "manager", "comments"];
-		// 	array_unshift($device_array, $headers);
-		// 	$temp_file = tempnam(sys_get_temp_dir(), 'csv');
-		// 	$tmp_file = fopen($temp_file, 'w+');
-		// 	foreach ($device_array as $fields) {
-		// 		fputcsv($tmp_file, $fields, ';');
-		// 	}
-		// 	fflush($tmp_file);
-		// 	$csv_output = file_get_contents($temp_file);
-		// }
-		// catch (PDOException $e) 
-		// {
-		// 	setSQLError($e, 'SQL error. Call '.$_POST['call']);
-		// }
 		try
 		{
 			$device_array = doGetDevicesAll();
