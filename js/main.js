@@ -122,49 +122,43 @@ const doGetDevicesAll = function(json_answer){
 		devicesAllBody.insertAdjacentHTML('beforeend', `
 			<tr id="${deviceDataID}">
 				<td>
-					<span>${name}</span>
+					<span class="name-text">${name}</span>
 				</td>
 				<td>
-					<span>${platform}</span>
+					<span class="platform-text">${platform}</span>
 				</td>
 				<td>
-					<span>${service}</span>
+					<span class="service-text">${service}</span>
 				</td>
 				<td>
-					<span>${owner}</span>
+					<span class="owner-text">${owner}</span>
 				</td>
 				<td>
-					<span>${contact_info}</span>
+					<span class="contact_info-text">${contact_info}</span>
 				</td>
 				<td>
-					<span>${manager}</span>
+					<span class="manager-text">${manager}</span>
 				</td>
 				<td>
-					<span class="comment-text crop-height">${comments}</span>
+					<p class="comment-text crop-height">${comments.replace(/(?:\r\n|\r|\n)/g, '<br>')}</p>
 				</td>
 				<td>
 					<div class="action-buttons ${hideEditButtons}">
 						<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
-						 data-name="${name}"
-						 data-platform="${platform}"
-						 data-service="${service}"
-						 data-owner="${owner}"
-						 data-contact_info="${contact_info}"
-						 data-comments="${comments}"
-						 data-manager="${manager}"
-						 data-row-id="${deviceDataID}">Modify</button>
+						 data-row_id="${deviceDataID}">Modify</button>
 						<button class="btn btn-danger btn-sm action-button" data-name="${name}" data-device_id="${id}" data-param="delete">Delete</button>
 					</div>
 				</td>
 			</tr>
 		`);
 	});
-	
 	dataTableObj = $('#devices-all-table').DataTable( {
 	"columnDefs": [
 		{ "orderable": false, "targets": 7 },
+		{ "searchable": false, "targets": 7 },
 		{ "width": "15%", "targets": [1, 2, 3] },
 	],
+	"order": [],
 	"autoWidth": false,
 	"paging": false,
 	});
@@ -183,37 +177,30 @@ const doAddDevice = function({id, name, platform, service, owner, contact_info, 
 	newTR.id = deviceDataID;
 	newTR.insertAdjacentHTML('beforeend', `
 		<td>
-			<span>${name}</span>
+			<span class="name-text">${name}</span>
 		</td>
 		<td>
-			<span>${platform}</span>
+			<span class="platform-text">${platform}</span>
 		</td>
 		<td>
-			<span>${service}</span>
+			<span class="service-text">${service}</span>
 		</td>
 		<td>
-			<span>${owner}</span>
+			<span class="owner-text">${owner}</span>
 		</td>
 		<td>
-			<span>${contact_info}</span>
+			<span class="contact_info-text">${contact_info}</span>
 		</td>
 		<td>
-			<span>${manager}</span>
+			<span class="manager-text">${manager}</span>
 		</td>
 		<td>
-			<span class="comment-text crop-height">${comments}</span>
+			<p class="comment-text crop-height">${comments.replace(/(?:\r\n|\r|\n)/g, '<br>')}</p>
 		</td>
 		<td>
 			<div class="action-buttons d-block d-xl-flex">
 				<button class="btn btn-primary btn-sm action-button" data-device_id="${id}" data-param="modify"
-				data-name="${name}"
-				data-platform="${platform}"
-				data-service="${service}"
-				data-owner="${owner}"
-				data-contact_info="${contact_info}"
-				data-comments="${comments}"
-				data-manager="${manager}"
-				data-row-id="${deviceDataID}">Modify</button>
+				data-row_id="${deviceDataID}">Modify</button>
 				<button class="btn btn-danger btn-sm action-button" data-name="${name}" data-device_id="${id}" data-param="delete">Delete</button>
 			</div>
 		</td>
@@ -254,17 +241,20 @@ const deviceAction = function(event){
 	}
 };
 
-const modifyDeviceSettings = function(deviceParams){
+const modifyDeviceSettings = function(
+	{ device_id, row_id }
+	) {
+	const rowDevice = document.getElementById(row_id);
 	triangle.classList.remove('triangle-down');
 	triangle.classList.add('triangle-up');
-	inputDeviceName.value = deviceParams['name'];
-	inputDevicePlatform.value = deviceParams['platform'];
-	inputDeviceService.value = deviceParams['service'];
-	inputDeviceOwner.value = deviceParams['owner'];
-	inputDeviceContact_info.value = deviceParams['contact_info'];
-	inputDeviceManager.value = deviceParams['manager'];
-	inputDeviceComments.innerText = deviceParams['comments'];
-	btnApplySettings.dataset['device_id'] = deviceParams['device_id'];
+	inputDeviceName.value = rowDevice.querySelector('.name-text').innerText;
+	inputDevicePlatform.value = rowDevice.querySelector('.platform-text').innerText;
+	inputDeviceService.value = rowDevice.querySelector('.service-text').innerText;
+	inputDeviceOwner.value = rowDevice.querySelector('.owner-text').innerText;
+	inputDeviceContact_info.value = rowDevice.querySelector('.contact_info-text').innerText;
+	inputDeviceManager.value = rowDevice.querySelector('.manager-text').innerText;
+	inputDeviceComments.innerText = rowDevice.querySelector('.comment-text').innerText;
+	btnApplySettings.dataset['device_id'] = device_id;
 	$('.collapse').collapse('show');
 };
 
@@ -319,14 +309,14 @@ const triangleToggle = (event) =>{
 	}
 };
 
-const clearDeviceSettings = () =>{
+const clearDeviceSettings = () => {
 	inputDeviceSettings.forEach(function (inputField){
 		inputField.value = '';
 		inputField.innerText = '';
 	});
 };
 
-const applyDeviceSettings = (event) =>{
+const applyDeviceSettings = (event) => {
 	const deviceID = event.target.dataset['device_id'];
 	const request = new XMLHttpRequest();
 	const data = new FormData();
