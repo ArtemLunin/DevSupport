@@ -213,11 +213,19 @@ elseif (isset($_SESSION['logged_user']) && $_SESSION['logged_user'] && $pdo)
 	}
 	elseif ($call == 'doDataExport') 
 	{
+		$in_exp = FALSE;
+		if (isset($_GET['id']))
+		{
+			$arrID = json_decode($_GET['id'], TRUE, 2);
+			if ($arrID) {
+				$in_exp = implode(',', $arrID);
+			}
+		}
 		$spreadsheet = new Spreadsheet();
 		$sheet = $spreadsheet->getActiveSheet();
 		try
 		{
-			$device_array = doGetDevicesAll();
+			$device_array = doGetDevicesAll($in_exp);
 		
 			$headers = ["id", "name", "platform", "service", "owner", "contact_info", "manager", "comments"];
             $columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -290,11 +298,14 @@ function errorLog($error_message, $debug_mode = 1)
 		error_log($error_message);
 	return TRUE;
 }
-function doGetDevicesAll()
+function doGetDevicesAll($in_exp = FALSE)
 {
 	global $pdo, $mySQLQueryName, $global_csv_columns;
 	$device_list = [];
 	$sql = "/*{$mySQLQueryName}*/"."SELECT id, name, platform, service, owner, contact_info, manager, comments FROM devices";
+	if ($in_exp !== FALSE) {
+		$sql .= " WHERE id IN ({$in_exp})";
+	}
 	$row = $pdo->prepare($sql);
 	$row->execute();
 	if($table_res = $row->fetchall())

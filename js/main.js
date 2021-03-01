@@ -120,7 +120,7 @@ const doGetDevicesAll = function(json_answer){
 	{
 		let deviceDataID = `device-data-${id}`;
 		devicesAllBody.insertAdjacentHTML('beforeend', `
-			<tr id="${deviceDataID}">
+			<tr id="${deviceDataID}" data-node_id="${id}">
 				<td>
 					<span class="name-text">${name}</span>
 				</td>
@@ -162,7 +162,9 @@ const doGetDevicesAll = function(json_answer){
 	"autoWidth": false,
 	"paging": false,
 	});
+
 	mainContainer.classList.remove('d-none');
+
 };
 const doApplyDeviceSettings = function({id, name, platform, service, owner, contact_info, manager, comments}){
 	fillDevices();
@@ -292,7 +294,30 @@ const logOut = function(){
 	}
 }
 const dataExport = function() {
-	document.location.href='./backend.php?action=doDataExport';
+	let totalRows = dataTableObj.rows().count();
+	let selectedRows = dataTableObj.rows({page: 'current'}).count();
+	if (totalRows == selectedRows) {
+		document.location.href='./backend.php?action=doDataExport';
+	}
+	else {
+		let arrID = [];
+		dataTableObj.rows({page: 'current'}).every( function () {
+			let oneNode = this.nodes();
+			arrID.push(oneNode['0']['dataset']['node_id']);
+		});
+		let jsonID = JSON.stringify(arrID);
+		document.location.href=`./backend.php?action=doDataExport&id=${jsonID}`;
+	}
+	
+	// for (var key in dataSelected) {
+	// 	if (typeof(dataSelected[key]) === 'object')
+	// 	{
+			
+	// 		console.log(dataSelected[key]);
+	// 	}
+	// }
+	// console.log(dataSelected);
+	// document.location.href='./backend.php?action=doDataExport';
 }
 const triangleToggle = (event) =>{
 	const target = event.target;
